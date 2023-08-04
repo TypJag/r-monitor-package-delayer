@@ -1,13 +1,17 @@
 import socket
+import time
 
-HOST = "192.168.10.108"  # Standard loopback interface address (localhost)
-PORT = 50000  # Port to listen on (non-privileged ports are > 1023)
+HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
+PORT = 64623  # Port to listen on (non-privileged ports are > 1023)
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind((HOST, PORT))
-    s.listen()
-    conn, addr = s.accept()
-    with conn:
-        print(f"Connected by {addr}")
-        while True:
-            conn.sendall(b'$F,1,"00:00:00","16:34:08","00:00:00","      "\r\n')
+laps = 0
+
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind((HOST, PORT))
+server_socket.listen(1)
+
+conn, addr = server_socket.accept()
+
+for i in range(0, 100):
+    conn.sendall(bytes(f'$F,{i},"00:00:00","16:34:08","00:00:00","      "\r\n', encoding='utf8'))
+    time.sleep(3)
