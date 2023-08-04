@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket Example</title>
+        <!-- Add the Socket.IO client library from CDN -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
+    </head>
+<body>
+    <div>
+        <h1 id="time"></h1>
+        <h1 id="laps"></h1>
+        
+        <button id="add">+5</button>
+        <button id="sub">-5</button>
+        <button id="now">Send now!</button>
+        <button id="halt">Halt</button>
+        <button id="unHalt">Unhalt</button>
+
+    </div>
+
+    <script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port)
+
+        socket.on('message', function(data) {
+            console.log('Received message from server:', data)
+            // document.getElementById('message').innerHTML = data.data
+        })
+
+        
+        // Send a message to the server upon successful WebSocket connection
+        socket.on('connect', function() {
+            socket.emit('message_from_client', 'Hello from client!')
+        })
+
+        // Send a message to the server upon successful WebSocket connection
+        socket.on('ping', function(data) {
+            console.log(data.timeLeft)
+            document.getElementById('time').innerHTML = data.timeLeft
+            document.getElementById('laps').innerHTML = 'Laps: ' + data.remainingLaps
+        })
+
+        document.getElementById('add').onclick = function() {
+            console.log('add')
+            socket.emit('change', 5)
+        }
+
+        document.getElementById('sub').onclick = function() {
+            socket.emit('change', -5)
+        }
+
+        document.getElementById('now').onclick = function() {
+            socket.emit('end')
+        }
+
+        document.getElementById('halt').onclick = function() {
+            socket.emit('halt')
+        }
+        
+        document.getElementById('unHalt').onclick = function() {
+            socket.emit('unHalt')
+        }
+
+    </script>
+</body>
+</html>
