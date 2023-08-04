@@ -28,9 +28,10 @@ halt = False
 isFinished = False
 remainingLaps = 0
 
-HOST = "127.0.0.1"  # The server's hostname or IP address
-recvPORT = 64623  # The port used by the server
-sendPORT = 64624
+HOST = "192.168.10.102"  # The server's hostname or IP address
+sendHOST = "192.168.10.108"
+recvPORT = 50000  # The port used by the server
+sendPORT = 50001
 
 Pixel_conn = 0
 
@@ -147,7 +148,7 @@ def tcp_loop():
   Orbits_socket.connect((HOST, recvPORT))
 
   Pixel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  Pixel_socket.bind((HOST, sendPORT))
+  Pixel_socket.bind((sendHOST, sendPORT))
   Pixel_socket.listen(1)
 
   Pixel_conn, addr = Pixel_socket.accept()
@@ -160,11 +161,6 @@ def tcp_loop():
       print("Leader has passed")
       resetTime()
       setRemainingLaps(lap)
-  
-
-
-
-
   
 
 if __name__ == '__main__':

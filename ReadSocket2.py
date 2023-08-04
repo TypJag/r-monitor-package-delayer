@@ -16,7 +16,7 @@ def start_timer():
 
 
 HOST = "127.0.0.1"  # The server's hostname or IP address
-PORT = 64624  # The port used by the server
+PORT = 64623  # The port used by the server
 PORT2 = 64624
 
 Orbits_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
