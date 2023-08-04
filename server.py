@@ -3,8 +3,7 @@ from flask_socketio import SocketIO, emit
 import time
 import threading
 import socket
-from functions import checkHasLeaderPassed
-from functions import checkRemaingingLaps 
+from functions import checkHasLeaderPassedAndLaps
 from functions import sendToPixel 
 
 
@@ -44,6 +43,8 @@ def on_change(value):
 @socketio.on('end')
 def on_end():
   global timeLeft
+  global isFinished
+  isFinished = False
   timeLeft = 0
 
   ping_clients()
@@ -85,7 +86,8 @@ def ping_loop():
       time.sleep(1)
       timeLeft = max(0, timeLeft - 1)
       if timeLeft == 0:
-        print('Time is up!')
+        #print('Time is up!')
+        on_finish()
 
 
 # External functions
@@ -109,7 +111,7 @@ def on_finish():
     return
   else:
     # Call axel stuff
-    #sendToPixel(Pixel_conn,remainingLaps)
+    sendToPixel(Pixel_conn,remainingLaps)
     isFinished = True
 
 def tcp_loop():
@@ -122,18 +124,21 @@ def tcp_loop():
   Orbits_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   Orbits_socket.connect((HOST, recvPORT))
 
-  #Pixel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  #Pixel_socket.bind((HOST, sendPORT))
-  #Pixel_socket.listen(1)
+  Pixel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  Pixel_socket.bind((HOST, sendPORT))
+  Pixel_socket.listen(1)
 
-  #Pixel_conn, addr = Pixel_socket.accept()
+  Pixel_conn, addr = Pixel_socket.accept()
+  print("Connected to Pixel")
 
   while True:
-    if (checkHasLeaderPassed(Orbits_socket,remainingLaps)) == True:
+    [hasPassed, lap] = checkHasLeaderPassedAndLaps(Orbits_socket,remainingLaps)
+    
+    if (hasPassed == True):
       print("Leader has passed")
       resetTime()
-      setRemainingLaps(checkRemaingingLaps(Orbits_socket,remainingLaps))
-    
+      setRemainingLaps(lap)
+  
 
 
 

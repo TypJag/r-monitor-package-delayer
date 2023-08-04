@@ -14,4 +14,4 @@ conn, addr = server_socket.accept()
 
 for i in range(0, 100):
     conn.sendall(bytes(f'$F,{i},"00:00:00","16:34:08","00:00:00","      "\r\n', encoding='utf8'))
-    time.sleep(3)
+    time.sleep(34)
