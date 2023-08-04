@@ -8,6 +8,9 @@
 <body>
     <div>
         <h1 id="time"></h1>
+        <h2 id="defaultTime"></h2>
+        <button id="defaultAdd">+</button>
+        <button id="defaultSub">-</button>  
         <h1 id="laps"></h1>
         
         <button id="add">+5</button>
@@ -38,6 +41,7 @@
             console.log(data.timeLeft)
             document.getElementById('time').innerHTML = data.timeLeft
             document.getElementById('laps').innerHTML = 'Laps: ' + data.remainingLaps
+            document.getElementById('defaultTime').innerHTML = 'Default Time: ' + data.defaultTime
         })
 
         document.getElementById('add').onclick = function() {
@@ -63,6 +67,12 @@
 
         document.getElementById('reset').onclick = function() {
             socket.emit('reset')
+        }
+        document.getElementById('defaultAdd').onclick = function() {
+            socket.emit('defaultChange', 1)
+        }
+        document.getElementById('defaultSub').onclick = function() {
+            socket.emit('defaultChange', -1)
         }
 
     </script>

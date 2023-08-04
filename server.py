@@ -41,6 +41,13 @@ def on_change(value):
 
   ping_clients()
 
+@socketio.on('defaultChange')
+def on_defaultChange(value):
+  global defaultTime
+  defaultTime = defaultTime + value
+
+  ping_clients()
+
 @socketio.on('end')
 def on_end():
   global timeLeft
@@ -80,6 +87,7 @@ def ping_clients():
   data = {
     'timeLeft': timeLeft,
     'remainingLaps': remainingLaps,
+    'defaultTime': defaultTime,
   }
   # JSON data
   # Ping connected clients every second
