@@ -15,6 +15,7 @@
         <button id="now">Send now!</button>
         <button id="halt">Halt</button>
         <button id="unHalt">Unhalt</button>
+        <button id="reset">Reset</button>
 
     </div>
 
@@ -58,6 +59,10 @@
         
         document.getElementById('unHalt').onclick = function() {
             socket.emit('unHalt')
+        }
+
+        document.getElementById('reset').onclick = function() {
+            socket.emit('reset')
         }
 
     </script>

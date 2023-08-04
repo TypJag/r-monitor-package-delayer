@@ -22,7 +22,8 @@ def on_connect():
   # Send a message to the client upon successful connection
   emit('message', {'data': 'Connected to server'})
 
-timeLeft = 30
+defaultTime = 30
+timeLeft = defaultTime
 halt = False
 isFinished = False
 remainingLaps = 0
@@ -54,10 +55,23 @@ def on_end():
   global halt
   halt = True
 
+  ping_clients()
+
 @socketio.on('unHalt')
 def on_end():
   global halt
   halt = False
+
+  ping_clients()
+
+@socketio.on('reset')
+def on_end():
+  global timeLeft
+  global isFinished
+  timeLeft = defaultTime
+  isFinished = False
+
+  ping_clients()
 
 def ping_clients():
   global timeLeft
@@ -99,7 +113,7 @@ def resetTime():
   global isFinished
   isFinished = False
   global timeLeft
-  timeLeft = 30
+  timeLeft = defaultTime
 
 def setRemainingLaps(laps):
   global remainingLaps
