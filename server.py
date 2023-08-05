@@ -6,12 +6,26 @@ import socket
 from functions import checkHasLeaderPassedAndLaps
 from functions import sendToPixel 
 from functions import sendToPixel2
-
-
+from functions import connectToClient
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app)
+
+defaultTime = 5
+timeLeft = defaultTime
+halt = True
+isFinished = False
+remainingLaps = 10
+
+HOST = "127.0.0.1"  # The server's hostname or IP address
+#HOST = "192.168.10.124"
+sendHOST = "192.168.10.106"
+recvPORT = 50000  # The port used by the server
+sendPORT = 50001
+
+Pixel_conn = 0
+Pixel_socket = 0
 
 @app.route('/')
 def index():
@@ -22,19 +36,6 @@ def on_connect():
   print('Client connected')
   # Send a message to the client upon successful connection
   emit('message', {'data': 'Connected to server'})
-
-defaultTime = 30
-timeLeft = defaultTime
-halt = False
-isFinished = False
-remainingLaps = 10
-
-HOST = "192.168.10.124"  # The server's hostname or IP address
-sendHOST = "192.168.10.106"
-recvPORT = 50000  # The port used by the server
-sendPORT = 50001
-
-Pixel_conn = 0
 
 @socketio.on('change')
 def on_change(value):
@@ -56,13 +57,6 @@ def on_end():
   global isFinished
   isFinished = False
   timeLeft = 0
-
-  ping_clients()
-
-@socketio.on('plusOne')
-def on_sendLapsPlusOne():
-  print("hi!")
-  sendToPixel2(Pixel_conn,remainingLaps)
 
   ping_clients()
 
@@ -105,6 +99,14 @@ def ping_clients():
   # Ping connected clients every second
   socketio.emit('ping', data, namespace='/')
 
+@socketio.on('plusOne')
+def on_sendLapsPlusOne():
+  #print("hi!")
+  try:
+    sendToPixel2(Pixel_conn, remainingLaps)
+  except:
+    connectToClient(Pixel_conn, Pixel_socket)
+  ping_clients()
     
 
 def ping_loop():
@@ -146,7 +148,10 @@ def on_finish():
     return
   else:
     # Call axel stuff
-    sendToPixel(Pixel_conn,remainingLaps)
+    try:
+      sendToPixel(Pixel_conn,remainingLaps)
+    except:
+      connectToClient(Pixel_conn, Pixel_socket)
     isFinished = True
 
 def tcp_loop():
@@ -155,15 +160,16 @@ def tcp_loop():
   global sendPORT
   global remainingLaps
   global Pixel_conn
+  global Pixel_socket
 
   Orbits_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   Orbits_socket.connect((HOST, recvPORT))
 
-  #Pixel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  #Pixel_socket.bind((sendHOST, sendPORT))
-  #Pixel_socket.listen(1)
+  Pixel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  Pixel_socket.bind((sendHOST, sendPORT))
+  Pixel_socket.listen(1)
 
-  #Pixel_conn, addr = Pixel_socket.accept()
+  Pixel_conn, addr = Pixel_socket.accept()
   print("Connected to Pixel")
 
   while True:
