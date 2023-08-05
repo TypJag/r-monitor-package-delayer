@@ -5,6 +5,7 @@ import threading
 import socket
 from functions import checkHasLeaderPassedAndLaps
 from functions import sendToPixel 
+from functions import sendToPixel2
 
 
 
@@ -26,10 +27,10 @@ defaultTime = 30
 timeLeft = defaultTime
 halt = False
 isFinished = False
-remainingLaps = 0
+remainingLaps = 10
 
 HOST = "192.168.10.102"  # The server's hostname or IP address
-sendHOST = "192.168.10.108"
+sendHOST = "192.168.10.106"
 recvPORT = 50000  # The port used by the server
 sendPORT = 50001
 
@@ -55,6 +56,13 @@ def on_end():
   global isFinished
   isFinished = False
   timeLeft = 0
+
+  ping_clients()
+
+@socketio.on('plusOne')
+def on_sendLapsPlusOne():
+  print("hi!")
+  sendToPixel2(Pixel_conn,remainingLaps)
 
   ping_clients()
 
@@ -85,9 +93,12 @@ def ping_clients():
   global timeLeft
   global isFinished
   global remainingLaps
+
+  tempremLaps = int(remainingLaps) -1
+
   data = {
     'timeLeft': timeLeft,
-    'remainingLaps': remainingLaps,
+    'remainingLaps': tempremLaps,
     'defaultTime': defaultTime,
   }
   # JSON data
@@ -103,6 +114,7 @@ def ping_loop():
     if halt:
       print('Halted')
       time.sleep(1)
+      ping_clients()
     else:
       print('not halted')
       ping_clients()

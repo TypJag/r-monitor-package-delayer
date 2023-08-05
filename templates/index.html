@@ -19,6 +19,7 @@
         <button id="halt">Halt</button>
         <button id="unHalt">Unhalt</button>
         <button id="reset">Reset</button>
+        <button id="sendLapsPlusOne">Send Laps Plus One!</button>
 
     </div>
 
@@ -73,6 +74,12 @@
         }
         document.getElementById('defaultSub').onclick = function() {
             socket.emit('defaultChange', -1)
+        }
+        document.getElementById('defaultSub').onclick = function() {
+            socket.emit('defaultChange', -1)
+        }
+        document.getElementById('sendLapsPlusOne').onclick = function() {
+            socket.emit('plusOne')
         }
 
     </script>
