@@ -29,7 +29,7 @@ halt = False
 isFinished = False
 remainingLaps = 10
 
-HOST = "192.168.10.102"  # The server's hostname or IP address
+HOST = "192.168.10.124"  # The server's hostname or IP address
 sendHOST = "192.168.10.106"
 recvPORT = 50000  # The port used by the server
 sendPORT = 50001
@@ -159,11 +159,11 @@ def tcp_loop():
   Orbits_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   Orbits_socket.connect((HOST, recvPORT))
 
-  Pixel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  Pixel_socket.bind((sendHOST, sendPORT))
-  Pixel_socket.listen(1)
+  #Pixel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  #Pixel_socket.bind((sendHOST, sendPORT))
+  #Pixel_socket.listen(1)
 
-  Pixel_conn, addr = Pixel_socket.accept()
+  #Pixel_conn, addr = Pixel_socket.accept()
   print("Connected to Pixel")
 
   while True:

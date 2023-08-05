@@ -16,20 +16,26 @@ def checkHasLeaderPassedAndLaps(host_socket, currentlap):
             else:
                 return False, currentlap
         elif sdata[0] == '':
-            return    
+            return False, currentlap    
 
             
 def sendToPixel(conn, remainingLaps):
-    print("Sending to pixel")
-    for i in range(5):
-        tempremLaps = int(remainingLaps) -1
+    print("Sending to pixel: ")
+    tempremLaps = int(remainingLaps) -1
+    print(tempremLaps)
+    print("\n")
+    #print("Sending to pixel")
+    #for i in range(5):
+    #    tempremLaps = int(remainingLaps) -1
         
-        conn.sendall(bytes(f'$F,{str(tempremLaps)},"00:00:00","00:00:00","00:00:00","      "\r\n', encoding='utf8'))
+    #    conn.sendall(bytes(f'$F,{str(tempremLaps)},"00:00:00","00:00:00","00:00:00","      "\r\n', encoding='utf8'))
 
 def sendToPixel2(conn, remainingLaps):
-    print("Sending to pixel")
-    for i in range(5):  
-        conn.sendall(bytes(f'$F,{str(remainingLaps)},"00:00:00","00:00:00","00:00:00","      "\r\n', encoding='utf8'))
+    print("Sending to pixel: ")
+    print(remainingLaps)
+    print("\n")
+    #for i in range(5):  
+    #    conn.sendall(bytes(f'$F,{str(remainingLaps)},"00:00:00","00:00:00","00:00:00","      "\r\n', encoding='utf8'))
 
     
         
