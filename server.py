@@ -12,14 +12,14 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app)
 
-defaultTime = 5
+defaultTime = 30
 timeLeft = defaultTime
-halt = True
+halt = False
 isFinished = False
 remainingLaps = 10
 
-HOST = "127.0.0.1"  # The server's hostname or IP address
-#HOST = "192.168.10.124"
+#HOST = "127.0.0.1"  # The server's hostname or IP address
+HOST = "192.168.10.124"
 sendHOST = "192.168.10.106"
 recvPORT = 50000  # The port used by the server
 sendPORT = 50001
@@ -105,7 +105,8 @@ def on_sendLapsPlusOne():
   try:
     sendToPixel2(Pixel_conn, remainingLaps)
   except:
-    connectToClient(Pixel_conn, Pixel_socket)
+    #connectToClient(Pixel_conn, Pixel_socket)
+    print("Failed to send!")
   ping_clients()
     
 
@@ -151,7 +152,8 @@ def on_finish():
     try:
       sendToPixel(Pixel_conn,remainingLaps)
     except:
-      connectToClient(Pixel_conn, Pixel_socket)
+      print("Failed to send!")
+      #connectToClient(Pixel_conn, Pixel_socket)
     isFinished = True
 
 def tcp_loop():

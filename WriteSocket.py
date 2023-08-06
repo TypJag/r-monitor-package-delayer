@@ -12,7 +12,7 @@ server_socket.listen(1)
 
 conn, addr = server_socket.accept()
 while True:
-    for i in range(1,10):
+    for i in range(1,5):
         conn.sendall(bytes(f'$F,10,"00:00:00","16:34:08","00:00:00","      "\r\n', encoding='utf8'))
         time.sleep(1)
 
@@ -22,6 +22,5 @@ while True:
 
     for i in range (1,20):
         conn.sendall(bytes(f'$F,9999,"00:00:00","16:34:08","00:00:00","      "\r\n', encoding='utf8'))
-        time.sleep(5)
-    time.sleep(30)
+        time.sleep(1)
 
