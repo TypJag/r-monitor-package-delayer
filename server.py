@@ -15,14 +15,13 @@ socketio = SocketIO(app)
 defaultTime = 30
 timeLeft = defaultTime
 halt = False
-isFinished = False
 remainingLaps = 10
 
 #HOST = "127.0.0.1"  # The server's hostname or IP address
-HOST = "192.168.10.124"
-sendHOST = "192.168.10.106"
-recvPORT = 50000  # The port used by the server
-sendPORT = 50001
+HOST = "192.168.10.127" #Ip of computer runing scorit
+sendHOST = "192.168.10.134" #Ip of computer runing pixelcom
+recvPORT = 50000  # The port used by scorit 
+sendPORT = 50001 # Port used by pixelcom
 
 Pixel_conn = 0
 Pixel_socket = 0
