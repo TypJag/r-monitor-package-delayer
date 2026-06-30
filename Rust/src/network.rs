@@ -1,5 +1,4 @@
-﻿use std::any::TypeId;
-use std::time::Duration;
+﻿use std::time::Duration;
 
 use async_stream::stream;
 use iced::Subscription;
@@ -9,18 +8,10 @@ use tokio::sync::mpsc;
 
 use crate::{Message, PixelSender};
 
-const SCORIT_HOST: &str = "192.168.10.127";
-const SCORIT_PORT: u16 = 50000;
-const PIXEL_HOST: &str = "192.168.10.134";
-const PIXEL_PORT: u16 = 50001;
-
-struct ScoritWorker;
-struct PixelWorker;
-
-fn scorit_stream() -> impl futures::Stream<Item = Message> + Send + 'static {
+fn scorit_stream(host: String, port: u16) -> impl futures::Stream<Item = Message> + Send + 'static {
     stream! {
         loop {
-            match TcpStream::connect((SCORIT_HOST, SCORIT_PORT)).await {
+            match TcpStream::connect((host.as_str(), port)).await {
                 Ok(tcp) => {
                     yield Message::ScoritConnected;
                     let reader = BufReader::new(tcp);
@@ -43,11 +34,11 @@ fn scorit_stream() -> impl futures::Stream<Item = Message> + Send + 'static {
     }
 }
 
-fn pixel_stream() -> impl futures::Stream<Item = Message> + Send + 'static {
+fn pixel_stream(host: String, port: u16) -> impl futures::Stream<Item = Message> + Send + 'static {
     stream! {
         loop {
             let listener = loop {
-                match TcpListener::bind((PIXEL_HOST, PIXEL_PORT)).await {
+                match TcpListener::bind((host.as_str(), port)).await {
                     Ok(l) => break l,
                     Err(_) => tokio::time::sleep(Duration::from_secs(5)).await,
                 }
@@ -76,10 +67,16 @@ fn pixel_stream() -> impl futures::Stream<Item = Message> + Send + 'static {
     }
 }
 
-pub fn scorit_subscription() -> Subscription<Message> {
-    Subscription::run_with_id(TypeId::of::<ScoritWorker>(), scorit_stream())
+/// Subscription that connects to the Scorit scoring system.
+/// Changing `host` or `port` restarts the subscription automatically.
+pub fn scorit_subscription(host: String, port: u16) -> Subscription<Message> {
+    let id = format!("scorit:{}:{}", host, port);
+    Subscription::run_with_id(id, scorit_stream(host, port))
 }
 
-pub fn pixel_subscription() -> Subscription<Message> {
-    Subscription::run_with_id(TypeId::of::<PixelWorker>(), pixel_stream())
+/// Subscription that binds the PixelCom TCP server.
+/// Changing `host` or `port` restarts the subscription automatically.
+pub fn pixel_subscription(host: String, port: u16) -> Subscription<Message> {
+    let id = format!("pixel:{}:{}", host, port);
+    Subscription::run_with_id(id, pixel_stream(host, port))
 }

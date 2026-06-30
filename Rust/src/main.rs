@@ -4,7 +4,7 @@ mod protocol;
 use std::time::Duration;
 
 use iced::alignment::{Horizontal, Vertical};
-use iced::widget::{button, column, container, row, text};
+use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Length, Subscription, Task};
 use tokio::sync::mpsc;
 
@@ -48,6 +48,13 @@ pub enum Message {
     ScoritDisconnected,
     PixelConnected(PixelSender),
     PixelDisconnected,
+    // Connection configuration
+    ScoritHostChanged(String),
+    ScoritPortChanged(String),
+    ApplyScoritAddress,
+    PixelHostChanged(String),
+    PixelPortChanged(String),
+    ApplyPixelAddress,
 }
 
 // ---------------------------------------------------------------------------
@@ -62,6 +69,17 @@ struct App {
     is_finished: bool,
     scorit_connected: bool,
     pixel_sender: Option<PixelSender>,
+    last_lap_sent: Option<i32>,
+    // Applied addresses — changing these restarts the subscriptions
+    scorit_host: String,
+    scorit_port: u16,
+    pixel_host: String,
+    pixel_port: u16,
+    // Text-input buffers (live editing before Apply)
+    scorit_host_input: String,
+    scorit_port_input: String,
+    pixel_host_input: String,
+    pixel_port_input: String,
 }
 
 impl Default for App {
@@ -74,6 +92,15 @@ impl Default for App {
             is_finished: false,
             scorit_connected: false,
             pixel_sender: None,
+            last_lap_sent: None,
+            scorit_host: "192.168.10.127".to_string(),
+            scorit_port: 50000,
+            pixel_host: "192.168.10.134".to_string(),
+            pixel_port: 50001,
+            scorit_host_input: "192.168.10.127".to_string(),
+            scorit_port_input: "50000".to_string(),
+            pixel_host_input: "192.168.10.134".to_string(),
+            pixel_port_input: "50001".to_string(),
         }
     }
 }
@@ -83,7 +110,8 @@ impl App {
     // Helper: write a pixel message (fires-and-forgets via mpsc)
     // ------------------------------------------------------------------
 
-    fn send_to_pixel(&self, laps: i32) {
+    fn send_to_pixel(&mut self, laps: i32) {
+        self.last_lap_sent = Some(laps);
         if let Some(ps) = &self.pixel_sender {
             ps.0.send(format_pixel_message(laps)).ok();
         }
@@ -139,7 +167,9 @@ impl App {
                 self.is_finished = false;
             }
             Message::PlusOne => {
-                // Mirror sendToPixel2: send remainingLaps as-is
+                // Mirror sendToPixel2: send remainingLaps as-is, then stop the timer
+                self.time_left = 0;
+                self.is_finished = true;
                 self.send_to_pixel(self.remaining_laps);
             }
 
@@ -183,6 +213,34 @@ impl App {
             Message::PixelDisconnected => {
                 self.pixel_sender = None;
             }
+
+            // ----- Connection configuration -----
+            Message::ScoritHostChanged(s) => {
+                self.scorit_host_input = s;
+            }
+            Message::ScoritPortChanged(s) => {
+                self.scorit_port_input = s;
+            }
+            Message::ApplyScoritAddress => {
+                if let Ok(port) = self.scorit_port_input.parse::<u16>() {
+                    self.scorit_host = self.scorit_host_input.clone();
+                    self.scorit_port = port;
+                    self.scorit_connected = false;
+                }
+            }
+            Message::PixelHostChanged(s) => {
+                self.pixel_host_input = s;
+            }
+            Message::PixelPortChanged(s) => {
+                self.pixel_port_input = s;
+            }
+            Message::ApplyPixelAddress => {
+                if let Ok(port) = self.pixel_port_input.parse::<u16>() {
+                    self.pixel_host = self.pixel_host_input.clone();
+                    self.pixel_port = port;
+                    self.pixel_sender = None;
+                }
+            }
         }
 
         Task::none()
@@ -202,6 +260,13 @@ impl App {
             (self.remaining_laps - 1).max(0)
         ))
         .size(28.0);
+
+        // Last value sent to the pixel display
+        let last_sent_display = text(match self.last_lap_sent {
+            Some(n) => format!("Last sent: {}", n),
+            None    => "Last sent: —".to_string(),
+        })
+        .size(20.0);
 
         // Default time display
         let default_display =
@@ -241,31 +306,48 @@ impl App {
             text("").size(22.0)
         };
 
-        // Connection status row
-        let scorit_label = text(if self.scorit_connected {
-            "Scorit: Connected"
-        } else {
-            "Scorit: Disconnected"
-        })
-        .size(16.0);
+        // Connection settings — Orbits (Scorit) row
+        let scorit_row = row![
+            text("Orbits:").size(15.0),
+            text_input("host", &self.scorit_host_input)
+                .on_input(Message::ScoritHostChanged)
+                .width(Length::Fixed(140.0)),
+            text(":").size(15.0),
+            text_input("port", &self.scorit_port_input)
+                .on_input(Message::ScoritPortChanged)
+                .width(Length::Fixed(55.0)),
+            button(text("Apply")).on_press(Message::ApplyScoritAddress),
+            text(if self.scorit_connected { "Connected" } else { "Disconnected" }).size(14.0),
+        ]
+        .spacing(6.0)
+        .align_y(Vertical::Center);
 
-        let pixel_label = text(if self.pixel_sender.is_some() {
-            "Pixel: Connected"
-        } else {
-            "Pixel: Disconnected"
-        })
-        .size(16.0);
-
-        let status_row = row![scorit_label, pixel_label].spacing(30.0);
+        // Connection settings — PixelCom row
+        let pixel_row = row![
+            text("Pixel: ").size(15.0),
+            text_input("host", &self.pixel_host_input)
+                .on_input(Message::PixelHostChanged)
+                .width(Length::Fixed(140.0)),
+            text(":").size(15.0),
+            text_input("port", &self.pixel_port_input)
+                .on_input(Message::PixelPortChanged)
+                .width(Length::Fixed(55.0)),
+            button(text("Apply")).on_press(Message::ApplyPixelAddress),
+            text(if self.pixel_sender.is_some() { "Connected" } else { "Disconnected" }).size(14.0),
+        ]
+        .spacing(6.0)
+        .align_y(Vertical::Center);
 
         let content = column![
             timer_value,
             laps_display,
+            last_sent_display,
             time_row,
             default_row,
             action_row,
             halt_label,
-            status_row,
+            scorit_row,
+            pixel_row,
         ]
         .spacing(16.0)
         .align_x(Horizontal::Center);
@@ -285,8 +367,8 @@ impl App {
 
     fn subscription(&self) -> Subscription<Message> {
         let tick = iced::time::every(Duration::from_secs(1)).map(|_| Message::Tick);
-        let scorit = network::scorit_subscription();
-        let pixel = network::pixel_subscription();
+        let scorit = network::scorit_subscription(self.scorit_host.clone(), self.scorit_port);
+        let pixel = network::pixel_subscription(self.pixel_host.clone(), self.pixel_port);
         Subscription::batch(vec![tick, scorit, pixel])
     }
 }
